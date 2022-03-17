@@ -1,18 +1,19 @@
 from unicodedata import category
-from django.shortcuts import render
+from django.shortcuts import render,get_object_or_404
 from django.utils import timezone
 import random
 from mainapp.models import ProductCategory
 from mainapp.models import Product
 # Create your views here.
 MENU_LINKS = [
-    {"url": "main", "name": "домой" },
-    {"url": "products:products", "name": "продукты" },
-    {"url": "contact", "name": "контакты" },
+    {"url": "main", "active": ["main"], "name": "домой" },
+    {"url": "products:all", "active": ["products:all", "products:category"], "name": "продукты" },
+    {"url": "contact", "active": ["contact"], "name": "контакты" },
 ]
 
 def index(request):
     products = Product.objects.all()
+    
     return render(request, "mainapp/index.html", context={
         "title" : "Главная",
         "menu_links": MENU_LINKS,
@@ -25,19 +26,8 @@ def index(request):
 
 def products(request):
     categorys=ProductCategory.objects.all()
-    products = [{
-        "name": "Стул1 повышенного класса",
-        "discrip": "Не оторваться прям.",
-        "img":"/img/product-11.jpg"
-    }, {
-        "name": "Стул2 повышенного класса",
-        "discrip": "Не оторваться.",
-        "img":"/img/product-21.jpg"
-    }, {
-        "name": "Лампа повышенного класса",
-        "discrip": "Не оторваться.",
-        "img":"/img/product-31.jpg"
-    }, ]
+    products = Product.objects.all()[:4]
+ 
     return render(request, "mainapp/products.html", context={
         "title" : "Продукты",
         "menu_links": MENU_LINKS,
@@ -47,7 +37,17 @@ def products(request):
     },)
 
 def category(request, pk):
-    return products(request) 
+    categorys=ProductCategory.objects.all()
+    category = get_object_or_404(ProductCategory, pk=pk)
+    products = Product.objects.filter(category=category)
+
+    return render(request, "mainapp/products.html", context={
+        "title" : "Продукты",
+        "menu_links": MENU_LINKS,
+        "products": products,
+        "categorys":categorys      
+
+    },)
 
 
 def contact(request):
